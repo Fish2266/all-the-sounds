@@ -50,7 +50,9 @@ function pen(g, scale, P) {
       if (Math.hypot(x + 0.5 - cx, y + 0.5 - cy) <= r) px(x, y, c);
     }
   };
-  return { px, rect, frame, disc };
+  /** Take a pixel back out — for the few a circle formula puts in the wrong place. */
+  const clear = (x, y) => g.clearRect(x * scale, y * scale, scale, scale);
+  return { px, rect, frame, disc, clear };
 }
 
 /* ---- The icons ----------------------------------------------------------- */
@@ -163,6 +165,9 @@ const ICONS = {
     d.disc(8, 8, 0.9, 'k');
     d.px(5, 5, '#4A4A57');             // sheen
     d.px(6, 4, '#4A4A57');
+    // A radius-6.6 circle leaves a lone two-pixel nub at the top, bottom and
+    // both sides, which reads as a bump rather than a curve at this size.
+    for (const [x, y] of [[7, 1], [8, 1], [7, 14], [8, 14], [1, 7], [1, 8], [14, 7], [14, 8]]) d.clear(x, y);
   },
 
   /** Items — a name tag. The feature is "call it something and it changes",
