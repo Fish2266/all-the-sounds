@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" data-theme="deepslate">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <title>All The Sounds — record your own Minecraft sounds</title>
+  <meta name="description" content="Every sound in Minecraft, listed. Record your own for any of them, trim and retake, and export a resource pack. Runs entirely in your browser.">
+  <meta name="theme-color" content="#12161A">
+
+  <!-- Link previews. og:image is left out deliberately, as in Frame & Groove. -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="All The Sounds">
+  <meta property="og:description" content="Record a replacement for every sound in Minecraft and export it as a resource pack. No account, no upload, no build step.">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/sounds.css">
+
+  <!-- Replaced at boot by the real pixel mark; this is only what shows in the
+       tab during the first few hundred milliseconds. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%236A4230'/%3E%3Crect x='3' y='3' width='10' height='10' fill='%2324160F'/%3E%3Crect x='5' y='9' width='3' height='3' fill='%233FD98B'/%3E%3Crect x='7' y='4' width='1' height='6' fill='%233FD98B'/%3E%3Crect x='8' y='4' width='2' height='1' fill='%233FD98B'/%3E%3C/svg%3E">
+</head>
+<body>
+  <div id="boot">
+    <div class="boot-inner">
+      <canvas id="boot-mark" class="boot-mark" width="128" height="128"></canvas>
+      <div class="boot-word">All <em>The</em> Sounds</div>
+      <div class="boot-bar" id="boot-bar" role="progressbar" aria-label="Loading"></div>
+      <div class="boot-tag" id="boot-tag">Starting up</div>
+    </div>
+  </div>
+
+  <noscript>
+    <div style="padding:48px;max-width:520px;margin:0 auto;font-family:system-ui;color:#EEF2F4">
+      <h1>All The Sounds needs JavaScript</h1>
+      <p>The whole studio — the recorder, the Ogg encoder and the pack writer — runs in your browser.
+         Nothing is uploaded anywhere, but it does need scripting enabled.</p>
+    </div>
+  </noscript>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+/* ============================================================================
+   ALL THE SOUNDS — this app's own layer.
+   Rides on the Frame & Groove tokens, base, components and shell. Everything
+   here is either the sound board (categories · list · inspector) or one of
+   the audio pieces lifted from Frame & Groove's disc studio, re-pointed at
+   the main accent.
+   ========================================================================= */
+
+:root {
+  /* "Theirs" and "yours" need to be told apart at a glance: the vanilla
+     originals wear diamond, your takes wear the emerald accent. */
+  --orig: var(--diamond-400);
+  --mine: var(--accent);
+  --row-h: 46px;
+  --group-h: 30px;
+  --insp-w: 372px;
+  --well: var(--bg-sunken);
+  --well-edge: var(--line-hair);
+}
+:root[data-theme="bone"] { --orig: var(--diamond-500); }
+
+/* Frame & Groove never hides anything with `hidden` that also sets a display,
+   but this app does (the mic light, progress bars), so the attribute has to
+   win over any class. */
+[hidden] { display: none !important; }
+@media (max-width: 1280px) { :root { --insp-w: 340px; } }
+@media (max-width: 1120px) { :root { --insp-w: 312px; } }
+
+/* ======================= LAYOUT ========================================= */
+.snd-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--insp-w);
+  flex: 1; min-width: 0; min-height: 0;
+}
+/* The category dropdown only appears once the sidebar has gone (see the
+   end of this file). */
+.snd-cat-select { display: none; width: auto; flex: 0 0 auto; }
+
+/* ======================= CATEGORY SIDEBAR =============================== */
+.snd-cats {
+  display: flex; flex-direction: column; min-height: 0;
+  background: var(--surface-1);
+  border-right: 1px solid var(--line-hair);
+}
+.snd-cats-head { padding: var(--s-4) var(--s-4) var(--s-3); border-bottom: 1px solid var(--line-hair); display: flex; flex-direction: column; gap: var(--s-2); }
+.snd-total { display: flex; align-items: baseline; gap: 6px; }
+.snd-total .n { font-size: var(--t-21); font-weight: var(--w-bold); letter-spacing: var(--tr-tighter); font-variant-numeric: tabular-nums; }
+.snd-total .of { font-size: var(--t-12); color: var(--text-3); font-variant-numeric: tabular-nums; }
+.snd-cats-list { flex: 1; min-height: 0; overflow-y: auto; padding: var(--s-2); display: flex; flex-direction: column; gap: 1px; }
+.snd-cats-foot { padding: var(--s-2); border-top: 1px solid var(--line-hair); }
+
+.cat-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+  column-gap: var(--s-2); row-gap: 5px;
+  width: 100%; padding: 7px var(--s-3);
+  border-radius: var(--r-md);
+  text-align: left; color: var(--text-2);
+  transition: background var(--d-fast) var(--ease-out), color var(--d-fast) var(--ease-out);
+  position: relative;
+}
+.cat-row:hover { background: var(--surface-2); color: var(--text-1); }
+.cat-row[aria-current="true"] { background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); color: var(--text-1); }
+.cat-row[aria-current="true"]::before {
+  content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 2px;
+  border-radius: 0 2px 2px 0; background: var(--accent);
+}
+.cat-row .cat-name { font-size: var(--t-13); font-weight: var(--w-medium); }
+.cat-row .cat-count { font-family: var(--f-mono); font-size: var(--t-10); color: var(--text-4); font-variant-numeric: tabular-nums; }
+.cat-row .cat-bar { grid-column: 1 / -1; }
+.cat-sep { height: 1px; background: var(--line-soft); margin: var(--s-2) var(--s-3); }
+
+/* A progress bar made of the same blocks as the boot bar, stretched. */
+.cat-bar, .snd-bar {
+  height: 4px; border-radius: 1px; overflow: hidden;
+  background: var(--surface-3); box-shadow: inset 0 1px 0 rgba(0,0,0,.25);
+}
+.cat-bar i, .snd-bar i {
+  display: block; height: 100%; width: 0;
+  background: var(--cat, var(--mine));
+  transition: width var(--d-slow) var(--ease-out);
+}
+.snd-bar { height: 8px; box-shadow: var(--bevel-in); border-radius: var(--r-xs); }
+
+/* ---- Game link status --------------------------------------------------- */
+.link-card {
+  display: flex; align-items: center; gap: var(--s-2);
+  width: 100%; padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--well);
+  box-shadow: inset 0 0 0 1px var(--well-edge);
+  text-align: left;
+  transition: box-shadow var(--d-fast) var(--ease-out), background var(--d-fast) var(--ease-out);
+}
+.link-card:hover { box-shadow: inset 0 0 0 1px var(--line); background: var(--surface-2); }
+.link-card .lc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.link-card .lc-title { font-size: var(--t-12); font-weight: var(--w-medium); color: var(--text-1); }
+.link-card .lc-sub { font-size: var(--t-10); color: var(--text-4); }
+.link-card[data-state="ready"] .engine-dot { background: var(--orig); box-shadow: 0 0 8px var(--orig); }
+.link-card[data-state="reconnect"] .engine-dot,
+.link-card[data-state="relink"] .engine-dot { background: var(--warn); }
+
+/* ======================= EVENT LIST ===================================== */
+.snd-list { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bg-base); }
+.snd-list-head {
+  display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line-hair);
+  background: var(--surface-1);
+}
+.snd-list-head .input-group { flex: 1 1 220px; min-width: 160px; }
+.snd-list-head .segmented button { white-space: nowrap; }
+.snd-list-head .kbd-hint { position: absolute; right: 8px; pointer-events: none; }
+
+.snd-scroll { flex: 1; min-height: 0; overflow-y: auto; position: relative; contain: strict; }
+.snd-spacer { position: relative; width: 100%; }
+
+/* Positioned by transform from the virtual list, so every row starts at 0. */
+.ev-group, .ev-row { position: absolute; left: 0; right: 0; top: 0; }
+.ev-group {
+  height: var(--group-h);
+  display: flex; align-items: flex-end; gap: var(--s-2);
+  padding: 0 var(--s-4) 5px;
+  font-size: var(--t-10); font-weight: var(--w-bold);
+  letter-spacing: var(--tr-widest); text-transform: uppercase;
+  color: var(--text-3);
+}
+.ev-group .eg-count { font-family: var(--f-mono); color: var(--text-4); letter-spacing: 0; font-weight: var(--w-medium); }
+.ev-group .eg-count[data-full="true"] { color: var(--ok); }
+
+.ev-row {
+  height: var(--row-h);
+  display: flex; align-items: center; gap: var(--s-3);
+  margin: 0 var(--s-2);
+  padding: 0 var(--s-2) 0 var(--s-3);
+  border-radius: var(--r-md);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--d-fast) var(--ease-out);
+}
+.ev-row:hover { background: var(--surface-1); }
+.ev-row[aria-selected="true"] { background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); }
+.ev-row[aria-selected="true"]::before {
+  content: ""; position: absolute; left: 0; top: 9px; bottom: 9px; width: 2px;
+  border-radius: 0 2px 2px 0; background: var(--accent);
+}
+.ev-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.ev-title { font-size: var(--t-13); font-weight: var(--w-medium); color: var(--text-1); }
+.ev-id { font-family: var(--f-mono); font-size: var(--t-10); color: var(--text-4); letter-spacing: 0; }
+.ev-row[aria-selected="true"] .ev-id { color: var(--text-3); }
+
+/* The status block: a hollow slot until something is recorded, then filled
+   with the accent — an empty inventory slot versus a full one. */
+.ev-slot {
+  width: 12px; height: 12px; flex: none; border-radius: 1px;
+  background: var(--bg-sunken);
+  box-shadow: var(--bevel-in);
+}
+.ev-row[data-done="true"] .ev-slot {
+  background: var(--mine);
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.35), inset -1px -1px 0 rgba(0,0,0,.3), 0 0 6px color-mix(in srgb, var(--mine) 45%, transparent);
+}
+.ev-meta { display: flex; align-items: center; gap: 4px; flex: none; }
+.ev-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  height: 18px; padding: 0 6px; border-radius: var(--r-sm);
+  font-size: var(--t-10); font-weight: var(--w-semi); font-variant-numeric: tabular-nums;
+  background: var(--surface-2); color: var(--text-3);
+}
+.ev-chip.mine { background: color-mix(in srgb, var(--mine) 16%, transparent); color: var(--mine); }
+.ev-chip.orig { background: color-mix(in srgb, var(--orig) 12%, transparent); color: var(--orig); }
+.ev-chip.snap { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); }
+.ev-row .ev-play { opacity: 0; transition: opacity var(--d-fast) var(--ease-out); }
+.ev-row:hover .ev-play, .ev-row[aria-selected="true"] .ev-play, .ev-play[data-playing="true"] { opacity: 1; }
+.ev-play[data-playing="true"] { color: var(--orig); }
+
+.snd-empty { position: absolute; inset: 0; display: grid; place-items: center; }
+
+/* ======================= INSPECTOR ====================================== */
+.snd-insp {
+  display: flex; flex-direction: column; min-width: 0; min-height: 0;
+  background: var(--surface-1);
+  border-left: 1px solid var(--line-hair);
+}
+.insp-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+.insp-head { padding: var(--s-5) var(--s-4) var(--s-4); display: flex; flex-direction: column; gap: var(--s-2); border-bottom: 1px solid var(--line-hair); }
+.insp-title { font-size: var(--t-18); font-weight: var(--w-bold); letter-spacing: var(--tr-tighter); line-height: var(--lh-snug); }
+.insp-id {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  font-family: var(--f-mono); font-size: var(--t-11); color: var(--text-3); letter-spacing: 0;
+}
+.insp-id button { color: var(--text-4); display: inline-grid; place-items: center; }
+.insp-id button:hover { color: var(--text-1); }
+.insp-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* ---- Originals ---------------------------------------------------------- */
+.orig-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.orig-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 26px; padding: 0 9px 0 7px;
+  border-radius: var(--r-sm);
+  background: var(--well);
+  box-shadow: inset 0 0 0 1px var(--well-edge);
+  font-family: var(--f-mono); font-size: var(--t-11); color: var(--text-2); letter-spacing: 0;
+  transition: all var(--d-fast) var(--ease-out);
+  max-width: 100%;
+}
+.orig-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.orig-chip svg { color: var(--orig); flex: none; }
+.orig-chip:hover { background: color-mix(in srgb, var(--orig) 10%, var(--well)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--orig) 40%, transparent); color: var(--text-1); }
+.orig-chip[data-playing="true"] { background: color-mix(in srgb, var(--orig) 18%, var(--well)); box-shadow: inset 0 0 0 1.5px var(--orig); color: var(--text-1); }
+.orig-chip:disabled { opacity: .45; }
+
+/* ---- Takes -------------------------------------------------------------- */
+.take-list { display: flex; flex-direction: column; gap: 4px; }
+.take-row {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--s-2);
+  padding: 6px var(--s-2) 6px 6px;
+  border-radius: var(--r-md);
+  background: var(--well);
+  box-shadow: inset 0 0 0 1px var(--well-edge);
+  cursor: pointer;
+  transition: box-shadow var(--d-fast) var(--ease-out), background var(--d-fast) var(--ease-out);
+}
+.take-row:hover { box-shadow: inset 0 0 0 1px var(--line); }
+.take-row[aria-selected="true"] { box-shadow: inset 0 0 0 1.5px var(--mine); background: color-mix(in srgb, var(--mine) 7%, var(--well)); }
+.take-row .tk-num {
+  width: 20px; height: 20px; border-radius: var(--r-xs);
+  display: grid; place-items: center;
+  font-size: var(--t-10); font-weight: var(--w-bold); color: var(--text-3);
+  background: var(--surface-3); box-shadow: var(--bevel);
+}
+.take-row[aria-selected="true"] .tk-num { background: var(--mine); color: var(--text-inv); }
+.take-row .tk-wave { height: 28px; width: 100%; display: block; image-rendering: auto; }
+.take-row .tk-side { display: flex; align-items: center; gap: 2px; }
+.take-row .tk-len { font-family: var(--f-mono); font-size: var(--t-10); color: var(--text-3); min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---- Waveform (after the disc studio's, on the main accent) ------------- */
+.wave-shell {
+  position: relative; border-radius: var(--r-md); overflow: hidden;
+  background: var(--well);
+  box-shadow: inset 0 0 0 1px var(--well-edge);
+  height: 96px; cursor: pointer;
+  touch-action: none;
+}
+.wave-shell canvas { width: 100%; height: 100%; image-rendering: auto; }
+.wave-shell .w-playhead {
+  position: absolute; top: 0; bottom: 0; width: 1.5px;
+  background: var(--text-1); box-shadow: 0 0 8px var(--text-1);
+  pointer-events: none; z-index: 3; opacity: 0;
+}
+.wave-shell[data-playing="true"] .w-playhead { opacity: 1; }
+.wave-shell .w-region {
+  position: absolute; top: 0; bottom: 0; z-index: 2;
+  background: color-mix(in srgb, var(--mine) 11%, transparent);
+  border-left: 2px solid var(--mine);
+  border-right: 2px solid var(--mine);
+  pointer-events: none;
+}
+.wave-shell .w-mask { position: absolute; top: 0; bottom: 0; background: rgba(0,0,0,.5); z-index: 1; pointer-events: none; }
+:root[data-theme="bone"] .wave-shell .w-mask { background: rgba(255,255,255,.7); }
+.wave-handle {
+  position: absolute; top: 0; bottom: 0; width: 14px; z-index: 4;
+  cursor: ew-resize; display: grid; place-items: center;
+}
+.wave-handle::after {
+  content: ""; width: 3px; height: 26px; border-radius: 2px;
+  background: var(--mine); box-shadow: 0 1px 4px rgba(0,0,0,.5);
+}
+.wave-empty {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  color: var(--text-4); font-size: var(--t-12); pointer-events: none;
+}
+.wave-ruler {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--f-mono); font-size: var(--t-10);
+  color: var(--text-4); padding: 0 2px;
+  font-variant-numeric: tabular-nums;
+}
+.wave-ruler .wr-sel { color: var(--mine); }
+
+/* ---- Recorder (the disc studio's orb and meter) ------------------------- */
+.rec-panel {
+  display: flex; flex-direction: column; gap: var(--s-3);
+  padding: var(--s-3);
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--danger) 9%, transparent), transparent 60%),
+    var(--well);
+  box-shadow: inset 0 0 0 1px var(--well-edge);
+}
+.rec-panel[data-state="recording"] { box-shadow: inset 0 0 0 1.5px var(--danger); }
+.rec-orb {
+  width: 60px; height: 60px; border-radius: 50%; flex: none;
+  display: grid; place-items: center; position: relative;
+  background: var(--surface-3); color: var(--danger);
+  box-shadow: var(--bevel), var(--sh-2);
+  transition: all var(--d-base) var(--ease-out);
+}
+.rec-orb:hover { background: var(--surface-4); transform: scale(1.04); }
+.rec-orb:active { transform: scale(.97); }
+.rec-orb[data-armed="true"] { background: var(--danger); color: #fff; }
+.rec-orb[data-armed="true"]::before {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%;
+  border: 2px solid var(--danger); opacity: .55;
+  animation: fg-rec-ring 1.5s var(--ease-out) infinite;
+}
+.rec-orb:disabled { opacity: .4; pointer-events: none; }
+@keyframes fg-rec-ring { 0% { transform: scale(.9); opacity: .6 } 100% { transform: scale(1.28); opacity: 0 } }
+
+.rec-time { font-family: var(--f-mono); font-size: var(--t-18); font-weight: var(--w-semi); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.level-meter {
+  height: 6px; border-radius: var(--r-full); overflow: hidden;
+  background: var(--surface-3); position: relative;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.3);
+}
+.level-meter .lm-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--ok) 0%, var(--ok) 62%, var(--warn) 82%, var(--danger) 100%);
+  transition: width 60ms linear;
+}
+.mic-bars { display: flex; align-items: flex-end; gap: 2px; height: 28px; }
+.mic-bars i {
+  flex: 1; border-radius: 1px; background: var(--mine);
+  height: 8%; transition: height 70ms var(--ease-out); display: block;
+  opacity: .8;
+}
+.rec-panel[data-state="idle"] .mic-bars i { background: var(--surface-4); }
+.rec-panel[data-state="recording"] .mic-bars i { background: var(--danger); }
+
+.kbd-row { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: var(--t-11); color: var(--text-4); }
+.kbd-row span { display: inline-flex; align-items: center; gap: 4px; }
+
+/* ---- Take editor --------------------------------------------------------- */
+.tk-editor { display: flex; flex-direction: column; gap: var(--s-3); }
+.tk-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-2) var(--s-3); }
+.tk-controls .span-2 { grid-column: span 2; }
+
+/* ---- Drop target over the inspector -------------------------------------- */
+.snd-insp[data-over="true"] { box-shadow: inset 0 0 0 2px var(--accent); }
+
+/* ======================= TOP BAR: MIC LIVE ============================== */
+/* The one indicator that has to be impossible to miss: while it is lit the
+   microphone is open, and clicking it closes it. */
+.mic-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 24px; padding: 0 10px 0 8px;
+  border-radius: var(--r-full);
+  font-size: var(--t-11); font-weight: var(--w-semi);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 13%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 35%, transparent);
+}
+.mic-chip .dot { animation: fg-pulse 1.4s ease-in-out infinite; }
+.mic-chip:hover { background: color-mix(in srgb, var(--danger) 22%, transparent); }
+
+/* ======================= LIBRARY CARD ART =============================== */
+/* The art is 64 × 40 pixels scaled up with no smoothing (ui/packart.js). */
+.pc-art .pc-eq { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+
+/* ======================= EXPORT ========================================= */
+.export-wrap { max-width: 1120px; }
+.check-list { display: flex; flex-direction: column; gap: var(--s-2); }
+.cat-table { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px var(--s-4); font-size: var(--t-12); }
+.cat-table .ct-n { font-family: var(--f-mono); font-size: var(--t-11); color: var(--text-3); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ======================= TOP BAR FIT ==================================== */
+/* A long pack name must shorten, never slide under the save chip. */
+.logo-word { white-space: nowrap; }
+.topbar .crumbs { flex: 0 1 auto; overflow: hidden; }
+.crumbs .crumb { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+@media (max-width: 1100px) { .crumbs .badge { display: none; } }
+@media (max-width: 900px) {
+  .crumbs > .crumb:first-child, .crumbs > .crumb:first-child + .sep { display: none; }
+}
+
+/* ======================= NARROW ========================================= */
+/* Last in the file so it outranks the layout rules above. Below this the
+   category column goes and a dropdown in the list head does its job. */
+@media (max-width: 980px) {
+  .snd-layout { grid-template-columns: minmax(0, 1fr) var(--insp-w); }
+  .snd-cats { display: none; }
+  .snd-cat-select { display: block; }
+}
+
+/* ======================= BONE =========================================== */
+/* The light theme's own adjustments. Frame & Groove's Bone tokens stay as they
+   are, but this app leans on sunken wells far more than that one does, and at
+   the stock depth a screen full of them reads as grey mud rather than paper.
+   So the wells come up a step, the grain comes down, and everything that
+   holds audio sits on the whitest surface with a real edge, so waveforms,
+   meters and chips have something to stand on. */
+:root[data-theme="bone"] {
+  --bg-sunken: #E4DFD6;
+  --grain-opacity: 0.03;
+  --well: var(--surface-3);
+  --well-edge: var(--line);
+}
+
+/* The list is the page everything else is read against: make it paper. */
+:root[data-theme="bone"] .snd-list { background: var(--surface-2); }
+:root[data-theme="bone"] .ev-row:hover { background: var(--surface-1); }
+:root[data-theme="bone"] .ev-group { color: var(--text-2); }
+
+/* Deeper category shades, and tracks that show against a light panel. */
+:root[data-theme="bone"] .cat-bar i { background: var(--cat-light, var(--mine)); }
+:root[data-theme="bone"] .cat-bar,
+:root[data-theme="bone"] .snd-bar,
+:root[data-theme="bone"] .level-meter { background: var(--bg-sunken); }
+
+/* The record panel: a white card with the faintest warmth, not pink mud. */
+:root[data-theme="bone"] .rec-panel {
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--danger) 5%, transparent), transparent 60%),
+    var(--well);
+}
+:root[data-theme="bone"] .rec-panel[data-state="idle"] .mic-bars i { background: var(--line-strong); }
+:root[data-theme="bone"] .rec-orb { background: var(--surface-1); }
+
+/* Rail icons are pixel art in their own colours; at dark-theme dimming they
+   wash out to nothing on a light rail. */
+:root[data-theme="bone"] .rail-btn .rb-icon { opacity: .78; filter: saturate(.7); }
+:root[data-theme="bone"] .rail-btn:hover .rb-icon { opacity: .95; filter: saturate(.9); }
+:root[data-theme="bone"] .rail-btn[aria-current="true"] .rb-icon { opacity: 1; filter: none; }
+:root[data-theme="bone"] .rail-btn:disabled .rb-icon { opacity: .3; filter: saturate(0); }

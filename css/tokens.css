@@ -1,0 +1,202 @@
+/* ============================================================================
+   FRAME & GROOVE — Design Tokens
+   A visual language sitting between Cupertino restraint and Overworld matter.
+   Everything lives on a 4px grid. Every raised surface is beveled like a block,
+   but at 1px instead of 3. Colour is borrowed from ore, wood and stone.
+   ========================================================================= */
+
+:root {
+  /* ---- Grid & spacing (4px base) ---------------------------------------- */
+  --s-0:  0px;   --s-1:  4px;   --s-2:  8px;   --s-3: 12px;
+  --s-4: 16px;   --s-5: 20px;   --s-6: 24px;   --s-7: 28px;
+  --s-8: 32px;   --s-10: 40px;  --s-12: 48px;  --s-14: 56px;
+  --s-16: 64px;  --s-20: 80px;  --s-24: 96px;  --s-32: 128px;
+
+  /* ---- Radii --------------------------------------------------------------
+     Deliberately tight. Minecraft has no rounded corners at all, and matching
+     that exactly would be unusable at this density — but anything softer than
+     this stops reading as blocky. Round stays reserved for things that really
+     are round: a record, a swatch dot, a knob. */
+  --r-xs: 2px;  --r-sm: 3px;  --r-md: 4px;  --r-lg: 6px;
+  --r-xl: 8px;  --r-2xl: 10px; --r-full: 999px;
+
+  /* ---- Type ------------------------------------------------------------- */
+  --f-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+          "Inter", "Segoe UI", system-ui, sans-serif;
+  --f-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
+
+  --t-10: 10px; --t-11: 11px; --t-12: 12px; --t-13: 13px; --t-14: 14px;
+  --t-16: 16px; --t-18: 18px; --t-21: 21px; --t-26: 26px; --t-34: 34px; --t-44: 44px;
+
+  --lh-tight: 1.15; --lh-snug: 1.3; --lh-body: 1.5; --lh-loose: 1.7;
+
+  --tr-tightest: -0.03em; --tr-tighter: -0.018em; --tr-tight: -0.01em;
+  --tr-normal: 0em; --tr-wide: 0.02em; --tr-widest: 0.08em;
+
+  --w-regular: 400; --w-medium: 500; --w-semi: 600; --w-bold: 700;
+
+  /* ---- Motion ----------------------------------------------------------- */
+  --ease-out:    cubic-bezier(.16, 1, .3, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --ease-spring: cubic-bezier(.34, 1.4, .64, 1);
+  --ease-snap:   cubic-bezier(.2, .9, .25, 1);
+
+  --d-instant: 80ms; --d-fast: 140ms; --d-base: 220ms;
+  --d-slow: 340ms;   --d-lazy: 520ms;
+
+  /* ---- Ore palette (theme independent hues) ----------------------------- */
+  --emerald-100: #C9F7E0; --emerald-300: #6FE7AE; --emerald-400: #3FD98B;
+  --emerald-500: #22C275; --emerald-600: #149E5C; --emerald-700: #0C7444;
+
+  --amber-100: #FCEBC6;  --amber-300: #F7CE7C;  --amber-400: #F2B33D;
+  --amber-500: #DE9820;  --amber-600: #B87A15;  --amber-700: #8C5B0E;
+
+  --amethyst-100: #EADEFC; --amethyst-300: #CDB0FA; --amethyst-400: #B084F5;
+  --amethyst-500: #9662E8; --amethyst-600: #7B45CE; --amethyst-700: #5E2FA6;
+
+  --diamond-300: #9BEDF1; --diamond-400: #4FD8DE; --diamond-500: #2BBAC2;
+  --redstone-300: #F79E8D; --redstone-400: #F05C48; --redstone-500: #D93B26;
+  --lapis-400: #5B7CE8;   --copper-400: #E0784A;   --gold-400: #FCD34D;
+
+  /* ---- Semantic accents ------------------------------------------------- */
+  --accent:        var(--emerald-400);
+  --accent-hover:  var(--emerald-300);
+  --accent-press:  var(--emerald-500);
+  --accent-deep:   var(--emerald-700);
+
+  --paint-accent: var(--amber-400);
+  --disc-accent:  var(--amethyst-400);
+  --info:         var(--diamond-400);
+  --danger:       var(--redstone-400);
+  --warn:         var(--amber-400);
+  --ok:           var(--emerald-400);
+
+  /* ---- Layout metrics --------------------------------------------------- */
+  --rail-w: 68px;
+  --sidebar-w: 268px;
+  --inspector-w: 320px;
+  --edpanels-w: 244px;
+  --tooldock-w: 46px;
+  --topbar-h: 52px;
+
+  --grain-opacity: 0.032;
+
+  /* ---- Z layers --------------------------------------------------------- */
+  --z-canvas: 1;   --z-sticky: 30;  --z-rail: 40;   --z-overlay: 60;
+  --z-modal: 70;   --z-palette: 80; --z-toast: 90;  --z-tooltip: 100;
+}
+
+/* ============================ DARK — "Deepslate" ========================= */
+:root, :root[data-theme="deepslate"] {
+  color-scheme: dark;
+
+  --bg-void:    #090C0E;
+  --bg-base:    #0F1316;
+  --bg-sunken:  #0A0D0F;
+
+  --surface-1:  #151A1E;
+  --surface-2:  #1C2328;
+  --surface-3:  #242C32;
+  --surface-4:  #2E383F;
+  --surface-5:  #3A464E;
+
+  --glass:      rgba(24, 30, 35, 0.72);
+  --glass-thin: rgba(24, 30, 35, 0.5);
+  --scrim:      rgba(5, 7, 8, 0.62);
+
+  --line-hair:   rgba(255, 255, 255, 0.045);
+  --line-soft:   rgba(255, 255, 255, 0.075);
+  --line:        rgba(255, 255, 255, 0.11);
+  --line-strong: rgba(255, 255, 255, 0.18);
+
+  --text-1: #EEF2F4;
+  --text-2: #AEBAC2;
+  --text-3: #78868F;
+  --text-4: #525E66;
+  --text-inv: #0B0F11;
+
+  /* The block bevel: lit on the top and left, shaded on the bottom and right,
+     two pixels thick like the game's own buttons and slots. */
+  --bevel-hi:  inset 2px 2px 0 rgba(255, 255, 255, 0.055);
+  --bevel-lo:  inset -2px -2px 0 rgba(0, 0, 0, 0.42);
+  --bevel:     var(--bevel-hi), var(--bevel-lo);
+  --bevel-in:  inset 2px 2px 0 rgba(0, 0, 0, 0.40), inset -2px -2px 0 rgba(255, 255, 255, 0.045);
+
+  --sh-1: 0 1px 2px rgba(0,0,0,.35);
+  --sh-2: 0 2px 6px rgba(0,0,0,.34), 0 1px 2px rgba(0,0,0,.30);
+  --sh-3: 0 8px 22px rgba(0,0,0,.42), 0 2px 6px rgba(0,0,0,.32);
+  --sh-4: 0 18px 48px rgba(0,0,0,.55), 0 6px 14px rgba(0,0,0,.38);
+  --sh-5: 0 32px 90px rgba(0,0,0,.66), 0 10px 24px rgba(0,0,0,.44);
+
+  --glow-accent: 0 0 0 1px rgba(63,217,139,.35), 0 4px 18px rgba(34,194,117,.22);
+  --ring: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent);
+
+  --checker-a: #1a1f23;
+  --checker-b: #232a2f;
+  --canvas-mat: #0C1012;
+}
+
+/* ============================= LIGHT — "Bone" =========================== */
+:root[data-theme="bone"] {
+  color-scheme: light;
+
+  --bg-void:    #DEDAD1;
+  --bg-base:    #EBE7DF;
+  --bg-sunken:  #DAD5CB;
+
+  --surface-1:  #F5F2EC;
+  --surface-2:  #FCFAF6;
+  --surface-3:  #FFFFFF;
+  --surface-4:  #FFFFFF;
+  --surface-5:  #F0ECE4;
+
+  --glass:      rgba(252, 250, 246, 0.78);
+  --glass-thin: rgba(252, 250, 246, 0.56);
+  --scrim:      rgba(38, 34, 28, 0.36);
+
+  --line-hair:   rgba(28, 24, 18, 0.05);
+  --line-soft:   rgba(28, 24, 18, 0.09);
+  --line:        rgba(28, 24, 18, 0.14);
+  --line-strong: rgba(28, 24, 18, 0.22);
+
+  --text-1: #14181B;
+  --text-2: #4B565E;
+  --text-3: #6E7A82;
+  --text-4: #94A0A8;
+  --text-inv: #FFFFFF;
+
+  --accent:       var(--emerald-600);
+  --accent-hover: var(--emerald-500);
+  --accent-press: var(--emerald-700);
+  --paint-accent: var(--amber-600);
+  --disc-accent:  var(--amethyst-600);
+  --info:         var(--diamond-500);
+  --danger:       var(--redstone-500);
+
+  --bevel-hi:  inset 2px 2px 0 rgba(255, 255, 255, 0.75);
+  --bevel-lo:  inset -2px -2px 0 rgba(28, 24, 18, 0.13);
+  --bevel:     var(--bevel-hi), var(--bevel-lo);
+  --bevel-in:  inset 2px 2px 0 rgba(28, 24, 18, 0.16), inset -2px -2px 0 rgba(255, 255, 255, 0.7);
+
+  --sh-1: 0 1px 2px rgba(40,34,26,.10);
+  --sh-2: 0 2px 6px rgba(40,34,26,.10), 0 1px 2px rgba(40,34,26,.07);
+  --sh-3: 0 8px 20px rgba(40,34,26,.13), 0 2px 5px rgba(40,34,26,.08);
+  --sh-4: 0 18px 44px rgba(40,34,26,.17), 0 6px 12px rgba(40,34,26,.10);
+  --sh-5: 0 32px 80px rgba(40,34,26,.22), 0 10px 22px rgba(40,34,26,.12);
+
+  --glow-accent: 0 0 0 1px rgba(20,158,92,.3), 0 4px 16px rgba(20,158,92,.18);
+  --ring: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent);
+
+  --checker-a: #E9E5DD;
+  --checker-b: #F6F3ED;
+  --canvas-mat: #D9D4CA;
+  --grain-opacity: 0.055;
+}
+
+/* ---- Per-domain accent scoping ----------------------------------------- */
+[data-domain="paintings"] { --accent: var(--paint-accent); --accent-hover: var(--amber-300); --accent-press: var(--amber-500); }
+[data-domain="discs"]     { --accent: var(--disc-accent);  --accent-hover: var(--amethyst-300); --accent-press: var(--amethyst-500); }
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --d-instant: 0ms; --d-fast: 0ms; --d-base: 0ms; --d-slow: 0ms; --d-lazy: 0ms; }
+}

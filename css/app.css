@@ -1,0 +1,562 @@
+/* ============================================================================
+   FRAME & GROOVE — Application shell & views
+   (All The Sounds: copied from Frame & Groove, less the painting, mob and
+   sprite sections. The shell is the same shell.)
+   ========================================================================= */
+
+#app { display: flex; flex-direction: column; background: var(--bg-base); }
+
+/* ======================= BOOT SPLASH ====================================
+   Modelled on the game's own loading screen: a mark, a wordmark, and a bar
+   made of discrete blocks that fill one at a time. Nothing spins.
+   ===================================================================== */
+#boot {
+  position: fixed; inset: 0; z-index: 200;
+  display: grid; place-items: center;
+  background: var(--bg-void);
+  transition: opacity var(--d-lazy) var(--ease-out), visibility var(--d-lazy);
+}
+#boot[data-done="true"] { opacity: 0; visibility: hidden; pointer-events: none; }
+
+#boot .boot-inner {
+  display: flex; flex-direction: column; align-items: center; gap: var(--s-4);
+  animation: fg-rise var(--d-slow) var(--ease-out) both;
+}
+
+.boot-mark {
+  width: 96px; height: 96px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 10px 22px rgba(0,0,0,.55));
+  animation: boot-drop .55s var(--ease-spring) both;
+}
+@keyframes boot-drop {
+  from { opacity: 0; transform: translateY(-14px) scale(.86) }
+  to   { opacity: 1; transform: none }
+}
+
+.boot-word {
+  font-size: var(--t-18); font-weight: var(--w-bold);
+  letter-spacing: var(--tr-tighter);
+  color: var(--text-1);
+}
+.boot-word em { font-style: normal; color: var(--text-4); font-weight: var(--w-medium); }
+
+/* A row of blocks, lit left to right — the game's progress bar, not a spinner. */
+.boot-bar {
+  display: flex; gap: 3px;
+  padding: 3px;
+  border-radius: 3px;
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+}
+.boot-bar i {
+  width: 9px; height: 9px;
+  display: block;
+  background: var(--surface-3);
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.05), inset -1px -1px 0 rgba(0,0,0,.35);
+  transition: background var(--d-base) var(--ease-out), box-shadow var(--d-base) var(--ease-out);
+}
+.boot-bar i[data-on="true"] {
+  background: var(--accent);
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.35), inset -1px -1px 0 rgba(0,0,0,.30),
+              0 0 8px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+#boot .boot-tag {
+  font-size: var(--t-11); color: var(--text-4);
+  letter-spacing: var(--tr-widest); text-transform: uppercase;
+  min-height: 1em;
+}
+
+/* The failure state replaces the whole splash, so it needs no animation. */
+#boot .boot-error { max-width: 460px; text-align: center; padding: 32px; }
+
+/* ======================= LOGO =========================================== */
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark {
+  width: 28px; height: 28px; flex: none;
+  display: grid; place-items: center;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.4));
+}
+.logo-mark canvas { width: 28px; height: 28px; image-rendering: pixelated; }
+.logo-mark-lg { width: 60px; height: 60px; }
+.logo-mark-lg canvas { width: 60px; height: 60px; }
+.logo-word { font-size: var(--t-14); font-weight: var(--w-bold); letter-spacing: var(--tr-tighter); line-height: 1; }
+.logo-word em { font-style: normal; color: var(--text-3); font-weight: var(--w-medium); }
+
+/* ======================= TOP BAR ======================================== */
+.topbar {
+  height: var(--topbar-h); flex: none;
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: 0 var(--s-3) 0 var(--s-4);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--line-hair);
+  box-shadow: var(--bevel-hi);
+  z-index: var(--z-sticky);
+  -webkit-app-region: drag;
+}
+.topbar button, .topbar input, .topbar .no-drag { -webkit-app-region: no-drag; }
+
+.crumbs { display: flex; align-items: center; gap: var(--s-1); min-width: 0; font-size: var(--t-13); }
+.crumbs .crumb { color: var(--text-3); padding: 3px var(--s-2); border-radius: var(--r-sm); transition: all var(--d-fast) var(--ease-out); }
+.crumbs .crumb:hover { color: var(--text-1); background: var(--surface-2); }
+.crumbs .crumb.current { color: var(--text-1); font-weight: var(--w-semi); }
+.crumbs .sep { color: var(--text-4); }
+
+.save-chip {
+  display: flex; align-items: center; gap: 5px;
+  font-size: var(--t-11); color: var(--text-4);
+  padding: 3px var(--s-2); border-radius: var(--r-full);
+  transition: color var(--d-base) var(--ease-out);
+}
+.save-chip[data-state="saving"] { color: var(--warn); }
+.save-chip[data-state="saved"] { color: var(--text-4); }
+.save-chip .dot { transition: background var(--d-base) var(--ease-out); }
+
+/* ======================= MAIN SHELL ===================================== */
+.shell { display: flex; flex: 1; min-height: 0; }
+
+/* ---- Icon rail ---------------------------------------------------------- */
+.rail {
+  width: var(--rail-w); flex: none;
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--s-1); padding: var(--s-3) 0;
+  background: var(--bg-void);
+  border-right: 1px solid var(--line-hair);
+  z-index: var(--z-rail);
+}
+.rail-btn {
+  position: relative;
+  width: 52px; height: 54px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; border-radius: var(--r-md);
+  color: var(--text-4);
+  transition: all var(--d-base) var(--ease-out);
+}
+/* The icons are 16×16 art shown at exactly 2×, so they must never be scaled
+   by anything else — and they dim rather than recolour when inactive. */
+.rail-btn .rb-icon {
+  display: block; width: 32px; height: 32px;
+  image-rendering: pixelated;
+  opacity: .55;
+  filter: saturate(.35);
+  transition: opacity var(--d-base) var(--ease-out), filter var(--d-base) var(--ease-out),
+              transform var(--d-base) var(--ease-spring);
+}
+.rail-btn:hover .rb-icon { opacity: .85; filter: saturate(.75); }
+.rail-btn[aria-current="true"] .rb-icon { opacity: 1; filter: none; transform: translateY(-1px); }
+.rail-btn:active .rb-icon { transform: translateY(1px) scale(.94); }
+.rail-btn:disabled .rb-icon { opacity: .22; filter: saturate(0); }
+.rail-btn .rb-label { font-size: 9px; font-weight: var(--w-semi); letter-spacing: var(--tr-wide); text-transform: uppercase; }
+.rail-btn:hover { color: var(--text-2); background: var(--surface-1); }
+.rail-btn[aria-current="true"] { color: var(--text-1); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.rail-btn[aria-current="true"]::before {
+  content: ""; position: absolute; left: -12px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 20px; border-radius: 0 3px 3px 0; background: var(--accent);
+  animation: fg-rail-in var(--d-base) var(--ease-spring);
+}
+@keyframes fg-rail-in { from { height: 4px; opacity: 0 } to { height: 20px; opacity: 1 } }
+.rail-btn:disabled { opacity: .28; pointer-events: none; }
+.rail-sep { width: 26px; height: 1px; background: var(--line-soft); margin: var(--s-2) 0; }
+
+/* ---- View host ---------------------------------------------------------- */
+.viewhost { flex: 1 1 0; min-width: 0; display: flex; position: relative; overflow: hidden; }
+.view { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+.view[hidden] { display: none !important; }
+
+.view-header {
+  padding: var(--s-6) var(--s-8) var(--s-4);
+  display: flex; align-items: flex-end; gap: var(--s-4);
+  flex: none;
+}
+.view-header .vh-text { flex: 1; min-width: 0; }
+.view-header h1 { font-size: var(--t-26); font-weight: var(--w-bold); letter-spacing: var(--tr-tightest); }
+.view-header p { font-size: var(--t-13); color: var(--text-3); margin-top: 4px; max-width: 620px; line-height: 1.5; }
+.view-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 var(--s-8) var(--s-10); }
+.view-body.pad-top { padding-top: var(--s-6); }
+
+/* ======================= LIBRARY ======================================== */
+.lib-toolbar {
+  display: flex; align-items: center; gap: var(--s-2);
+  padding: 0 var(--s-8) var(--s-4);
+}
+.lib-search { width: 250px; }
+
+.lib-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  gap: var(--s-4);
+}
+
+.proj-card {
+  display: flex; flex-direction: column;
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--bevel), 0 0 0 1px var(--line-hair), var(--sh-2);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--d-base) var(--ease-out), box-shadow var(--d-base) var(--ease-out);
+  text-align: left;
+  position: relative;
+}
+.proj-card:hover { transform: translateY(-3px); box-shadow: var(--bevel), 0 0 0 1px var(--line-soft), var(--sh-4); }
+.proj-card:active { transform: translateY(-1px); }
+.proj-card .pc-art {
+  aspect-ratio: 16 / 10;
+  position: relative; overflow: hidden;
+  background: var(--bg-sunken);
+  border-bottom: 1px solid var(--line-hair);
+  display: grid; place-items: center;
+}
+.proj-card .pc-art canvas, .proj-card .pc-art img { width: 100%; height: 100%; object-fit: cover; }
+.proj-card .pc-art::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,.35));
+  opacity: 0; transition: opacity var(--d-base) var(--ease-out);
+}
+.proj-card:hover .pc-art::after { opacity: 1; }
+.proj-card .pc-body { padding: var(--s-3) var(--s-3) var(--s-3); display: flex; flex-direction: column; gap: 5px; }
+.proj-card .pc-name { font-size: var(--t-13); font-weight: var(--w-semi); letter-spacing: var(--tr-tight); }
+.proj-card .pc-ns { font-family: var(--f-mono); font-size: var(--t-10); color: var(--text-4); }
+.proj-card .pc-stats { display: flex; align-items: center; gap: var(--s-2); margin-top: 2px; }
+.proj-card .pc-menu {
+  position: absolute; top: var(--s-2); right: var(--s-2);
+  opacity: 0; transform: translateY(-3px);
+  transition: all var(--d-fast) var(--ease-out);
+  background: var(--glass); backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.proj-card:hover .pc-menu, .proj-card:focus-within .pc-menu { opacity: 1; transform: none; }
+
+.proj-card-new {
+  border: 1.5px dashed var(--line-strong);
+  background: transparent; box-shadow: none;
+  align-items: center; justify-content: center;
+  min-height: 210px; gap: var(--s-2); color: var(--text-3);
+}
+.proj-card-new:hover {
+  border-color: var(--accent); color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  box-shadow: none; transform: translateY(-3px);
+}
+
+/* Stat count pill inside cards */
+.stat-mini { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-11); color: var(--text-3); }
+.stat-mini svg { color: var(--text-4); }
+
+/* ======================= SPLIT WORKSPACE ================================ */
+.workspace { display: flex; flex: 1; min-width: 0; min-height: 0; }
+
+.wk-sidebar {
+  width: var(--sidebar-w); flex: none;
+  display: flex; flex-direction: column;
+  background: var(--surface-1);
+  border-right: 1px solid var(--line-hair);
+  min-height: 0;
+}
+.wk-sidebar-head {
+  padding: var(--s-3);
+  display: flex; flex-direction: column; gap: var(--s-2);
+  border-bottom: 1px solid var(--line-hair);
+  flex: none;
+}
+.wk-sidebar-list { flex: 1; min-height: 0; overflow-y: auto; padding: var(--s-2); display: flex; flex-direction: column; gap: 1px; }
+.wk-sidebar-foot { padding: var(--s-2); border-top: 1px solid var(--line-hair); flex: none; }
+
+.wk-main { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; background: var(--bg-base); }
+
+/* ======================= PACK SETTINGS ================================== */
+.settings-wrap { max-width: 780px; display: flex; flex-direction: column; gap: var(--s-5); }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); }
+.form-grid .span-2 { grid-column: span 2; }
+@media (max-width: 900px) { .form-grid { grid-template-columns: minmax(0, 1fr); } .form-grid .span-2 { grid-column: auto; } }
+
+.version-card {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--line-hair);
+}
+.version-card .vc-num {
+  font-family: var(--f-mono); font-size: var(--t-16); font-weight: var(--w-bold);
+  color: var(--accent); line-height: 1;
+}
+.version-card .vc-lbl { font-size: var(--t-10); color: var(--text-4); letter-spacing: var(--tr-wide); text-transform: uppercase; margin-top: 3px; }
+
+.feature-list { display: flex; flex-direction: column; gap: var(--s-1); }
+.feature-row {
+  display: flex; align-items: center; gap: var(--s-2);
+  font-size: var(--t-12); color: var(--text-2);
+  padding: var(--s-1) 0;
+}
+.feature-row .fr-icon { flex: none; }
+.feature-row[data-ok="true"] .fr-icon { color: var(--ok); }
+.feature-row[data-ok="false"] .fr-icon { color: var(--text-4); }
+.feature-row[data-ok="false"] { color: var(--text-4); }
+
+/* pack.png icon editor */
+.packicon-slot {
+  width: 96px; height: 96px; border-radius: var(--r-md);
+  background: var(--bg-sunken); box-shadow: inset 0 0 0 1px var(--line);
+  display: grid; place-items: center; overflow: hidden; position: relative;
+  cursor: pointer; flex: none;
+}
+.packicon-slot canvas { width: 100%; height: 100%; }
+.packicon-slot .pi-over {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: rgba(0,0,0,.55); color: #fff; opacity: 0;
+  transition: opacity var(--d-fast) var(--ease-out); font-size: var(--t-11); font-weight: var(--w-semi);
+}
+.packicon-slot:hover .pi-over { opacity: 1; }
+
+/* ======================= EXPORT VIEW ==================================== */
+.export-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: var(--s-5); align-items: start; }
+@media (max-width: 1080px) { .export-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.filetree {
+  font-family: var(--f-mono); font-size: var(--t-11); line-height: 1.85;
+  color: var(--text-2); letter-spacing: 0;
+  max-height: 460px; overflow: auto;
+  padding: var(--s-3);
+}
+.filetree .ft-row { display: flex; align-items: center; gap: 6px; white-space: pre; border-radius: 3px; padding: 0 4px; }
+.filetree .ft-row:hover { background: var(--surface-2); }
+.filetree .ft-dir { color: var(--text-3); }
+.filetree .ft-file { color: var(--text-1); }
+.filetree .ft-json  { color: var(--emerald-300); }
+.filetree .ft-png   { color: var(--amber-300); }
+.filetree .ft-ogg   { color: var(--amethyst-300); }
+.filetree .ft-mcmeta{ color: var(--diamond-300); }
+.filetree .ft-size { margin-left: auto; color: var(--text-4); padding-left: var(--s-4); }
+
+.export-target {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--line-hair);
+}
+.export-target .et-icon {
+  width: 36px; height: 36px; border-radius: var(--r-sm); flex: none;
+  display: grid; place-items: center;
+  background: var(--surface-3); box-shadow: var(--bevel);
+}
+.export-target .et-main { flex: 1; min-width: 0; }
+.export-target .et-name { font-size: var(--t-13); font-weight: var(--w-medium); }
+.export-target .et-meta { font-size: var(--t-11); color: var(--text-4); font-family: var(--f-mono); }
+
+.install-step {
+  display: flex; gap: var(--s-3);
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--line-hair);
+}
+.install-step:last-child { border-bottom: none; }
+.install-step .is-num {
+  width: 22px; height: 22px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: var(--surface-3); box-shadow: var(--bevel);
+  font-size: var(--t-11); font-weight: var(--w-bold); color: var(--text-2);
+}
+.install-step .is-body { flex: 1; min-width: 0; font-size: var(--t-12); color: var(--text-2); line-height: 1.55; }
+.install-step .is-body strong { color: var(--text-1); font-weight: var(--w-semi); }
+.install-step code {
+  font-family: var(--f-mono); font-size: var(--t-11);
+  background: var(--bg-sunken); padding: 1px 5px; border-radius: var(--r-xs);
+  color: var(--text-1); box-shadow: inset 0 0 0 1px var(--line-hair);
+}
+
+/* ======================= COMMAND PALETTE ================================ */
+.cmdk-host {
+  position: fixed; inset: 0; z-index: var(--z-palette);
+  background: var(--scrim);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  display: flex; justify-content: center; align-items: flex-start;
+  padding-top: 14vh;
+  animation: fg-fade-in var(--d-fast) var(--ease-out);
+}
+.cmdk {
+  width: min(600px, calc(100vw - 48px));
+  max-height: 62vh; display: flex; flex-direction: column;
+  border-radius: var(--r-xl);
+  background: var(--glass);
+  backdrop-filter: blur(40px) saturate(1.7); -webkit-backdrop-filter: blur(40px) saturate(1.7);
+  box-shadow: var(--sh-5), 0 0 0 1px var(--line-soft), var(--bevel-hi);
+  overflow: hidden;
+  animation: fg-modal-in var(--d-base) var(--ease-out);
+}
+.cmdk-input {
+  height: 50px; padding: 0 var(--s-4);
+  display: flex; align-items: center; gap: var(--s-3);
+  border-bottom: 1px solid var(--line-soft);
+}
+.cmdk-input input { flex: 1; font-size: var(--t-16); letter-spacing: var(--tr-tight); background: none; }
+.cmdk-input input::placeholder { color: var(--text-4); }
+.cmdk-list { flex: 1; overflow-y: auto; padding: var(--s-2); }
+.cmdk-group { padding: var(--s-2) var(--s-2) var(--s-1); font-size: var(--t-10); font-weight: var(--w-bold); letter-spacing: var(--tr-widest); text-transform: uppercase; color: var(--text-4); }
+.cmdk-item {
+  display: flex; align-items: center; gap: var(--s-3);
+  width: 100%; height: 36px; padding: 0 var(--s-3);
+  border-radius: var(--r-md); font-size: var(--t-13); color: var(--text-1);
+}
+.cmdk-item .ci-icon { color: var(--text-3); flex: none; }
+.cmdk-item .ci-hint { margin-left: auto; font-size: var(--t-11); color: var(--text-4); }
+.cmdk-item[aria-selected="true"] { background: var(--accent); color: var(--text-inv); }
+.cmdk-item[aria-selected="true"] .ci-icon, .cmdk-item[aria-selected="true"] .ci-hint { color: var(--text-inv); opacity: .78; }
+.cmdk-foot { padding: var(--s-2) var(--s-3); border-top: 1px solid var(--line-soft); display: flex; gap: var(--s-4); font-size: var(--t-10); color: var(--text-4); }
+.cmdk-foot span { display: inline-flex; align-items: center; gap: 4px; }
+
+/* ======================= GLOBAL DROP OVERLAY =========================== */
+.global-drop {
+  position: fixed; inset: 0; z-index: var(--z-overlay);
+  background: color-mix(in srgb, var(--accent) 14%, var(--scrim));
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: grid; place-items: center;
+  animation: fg-fade-in var(--d-fast) var(--ease-out);
+  pointer-events: none;
+}
+.global-drop .gd-card {
+  padding: var(--s-8) var(--s-12);
+  border-radius: var(--r-2xl);
+  border: 2px dashed var(--accent);
+  background: var(--glass);
+  display: flex; flex-direction: column; align-items: center; gap: var(--s-3);
+  animation: fg-pop var(--d-base) var(--ease-spring);
+}
+
+/* ======================= RESPONSIVE ===================================== */
+/* The stage is the point of the whole screen, so as the window narrows the
+   chrome around it gives up room first — sidebar, then panels, then the
+   tool dock — and only after that does anything collapse. */
+@media (max-width: 1280px) {
+  :root { --inspector-w: 296px; --sidebar-w: 236px; --edpanels-w: 228px; }
+}
+@media (max-width: 1120px) {
+  :root { --inspector-w: 272px; --sidebar-w: 208px; --edpanels-w: 212px; --tooldock-w: 42px; }
+  .stage-bar .caption { display: none; }
+}
+@media (max-width: 980px) {
+  :root { --sidebar-w: 180px; --edpanels-w: 200px; }
+  .wk-sidebar .lr-sub { display: none; }
+}
+@media (max-width: 860px) {
+  /* Below this the list cannot show text and stay useful, so it becomes a
+     strip of thumbnails. Everything is still reachable — nothing is hidden. */
+  :root { --sidebar-w: 60px; }
+  .wk-sidebar-head .eyebrow,
+  .wk-sidebar-foot .btn span,
+  .list-row .lr-main,
+  .list-row .lr-actions { display: none; }
+  .list-row { justify-content: center; padding: var(--s-2) 0; }
+  .wk-sidebar-head { padding: var(--s-2); }
+  .wk-sidebar-head .row { justify-content: center; }
+}
+@media (max-width: 1000px) {
+  .view-header, .lib-toolbar { padding-left: var(--s-5); padding-right: var(--s-5); }
+  .view-body { padding-left: var(--s-5); padding-right: var(--s-5); }
+  .view-header { flex-direction: column; align-items: stretch; gap: var(--s-3); }
+}
+
+/* ============================================================================
+   Material — the generated block textures, used sparingly.
+
+   Texture is applied as a low-opacity overlay rather than a literal surface,
+   so the app reads as made of stone and oak without ever competing with the
+   artwork it is meant to frame.
+   ========================================================================= */
+
+[data-textures="off"] .rail::before,
+[data-textures="off"] .empty .e-art::before { background-image: none !important; }
+
+/* ---- Icon rail: deepslate ------------------------------------------------ */
+.rail { position: relative; isolation: isolate; }
+.rail::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background-image: var(--tex-deepslate);
+  background-size: 48px 48px;
+  image-rendering: pixelated;
+  opacity: .16;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+:root[data-theme="bone"] .rail::before { opacity: .10; }
+
+/* ---- Top bar: a whisper of stone ---------------------------------------- */
+.topbar { position: relative; isolation: isolate; }
+.topbar::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background-image: var(--tex-stone);
+  background-size: 64px 64px;
+  image-rendering: pixelated;
+  opacity: .05; mix-blend-mode: overlay; pointer-events: none;
+}
+
+/* ---- Empty-state plinth -------------------------------------------------- */
+.empty .e-art { position: relative; overflow: hidden; isolation: isolate; }
+.empty .e-art::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background-image: var(--tex-cobble);
+  background-size: 48px 48px;
+  image-rendering: pixelated;
+  opacity: .18; mix-blend-mode: overlay;
+}
+
+/* ---- Boot splash --------------------------------------------------------- */
+#boot { position: fixed; isolation: isolate; }
+#boot::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background-image: var(--tex-deepslate);
+  background-size: 72px 72px;
+  image-rendering: pixelated;
+  opacity: .10; mix-blend-mode: overlay;
+}
+
+/* ---- Card art plinth ----------------------------------------------------- */
+.proj-card .pc-art { position: relative; }
+
+/* ---- Section dividers get a hairline chisel ------------------------------ */
+.panel-head, .section-head { position: relative; }
+
+/* ---- Rail badge: something needs attention -------------------------------- */
+.rail-btn .rb-flag {
+  position: absolute; top: 5px; right: 8px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--warn);
+  box-shadow: 0 0 0 2px var(--bg-void), 0 0 7px var(--warn);
+  animation: fg-pop var(--d-base) var(--ease-spring);
+}
+.rail-btn .rb-flag[data-kind="error"] { background: var(--danger); box-shadow: 0 0 0 2px var(--bg-void), 0 0 7px var(--danger); }
+
+/* ---- View transition ------------------------------------------------------ */
+.view:not([hidden]) { animation: fg-view-in var(--d-base) var(--ease-out); }
+@keyframes fg-view-in {
+  from { opacity: 0; transform: translateY(6px) }
+  to   { opacity: 1; transform: none }
+}
+@media (prefers-reduced-motion: reduce) { .view:not([hidden]) { animation: none } }
+
+/* ---- Sortable list rows --------------------------------------------------
+   The insertion line is an accent bar between rows, and the row being carried
+   fades so it is obvious which one is in flight. */
+.list-row[data-dragging="true"] { opacity: .35; }
+.list-row[data-dropbefore="true"]::before,
+.list-row[data-dropafter="true"]::after {
+  content: ""; position: absolute; left: 6px; right: 6px; height: 2px;
+  background: var(--accent); border-radius: 2px;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 70%, transparent);
+  animation: fg-fade-in 90ms var(--ease-out);
+}
+.list-row[data-dropbefore="true"]::before { top: -1px; }
+.list-row[data-dropafter="true"]::after { bottom: -1px; }
+/* The selection bar and the drop line both use ::before; the drop line wins. */
+.list-row[aria-selected="true"][data-dropbefore="true"]::before {
+  left: 6px; right: 6px; top: -1px; bottom: auto; width: auto; height: 2px;
+}
+
+/* The unofficial-fan-tool line, sitting quietly under the pack grid. */
+.lib-footer {
+  flex: none;
+  padding: var(--s-3) var(--s-5) var(--s-4);
+  border-top: 1px solid var(--line-hair);
+  text-align: center;
+}

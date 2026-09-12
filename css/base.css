@@ -1,0 +1,197 @@
+/* ============================================================================
+   FRAME & GROOVE — Base layer: reset, typography, surfaces, scrollbars
+   ========================================================================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+
+html, body, #app { height: 100%; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--f-ui);
+  font-size: var(--t-13);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-tight);
+  color: var(--text-1);
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none;
+  overflow: hidden;
+  overscroll-behavior: none;
+  text-rendering: optimizeLegibility;
+}
+
+/* Fine stone-grain over the whole app: the Mojang half of the parentage,
+   dialled down until it reads as texture rather than decoration. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+body[data-grain="off"]::before { display: none; }
+
+img, svg, canvas, video { display: block; max-width: 100%; }
+canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+button, input, select, textarea {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  outline: none;
+}
+button { cursor: pointer; -webkit-user-select: none; user-select: none; }
+button:disabled { cursor: not-allowed; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+ul, ol { list-style: none; }
+
+/* ---- Typography roles --------------------------------------------------- */
+.display {
+  font-size: var(--t-34); font-weight: var(--w-bold);
+  letter-spacing: var(--tr-tightest); line-height: var(--lh-tight);
+}
+.title    { font-size: var(--t-21); font-weight: var(--w-semi); letter-spacing: var(--tr-tighter); line-height: var(--lh-snug); }
+.title-sm { font-size: var(--t-16); font-weight: var(--w-semi); letter-spacing: var(--tr-tight);   line-height: var(--lh-snug); }
+.body     { font-size: var(--t-13); color: var(--text-2); }
+.body-sm  { font-size: var(--t-12); color: var(--text-2); }
+.caption  { font-size: var(--t-11); color: var(--text-3); letter-spacing: var(--tr-normal); }
+
+.eyebrow {
+  font-size: var(--t-10); font-weight: var(--w-bold);
+  letter-spacing: var(--tr-widest); text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.mono { font-family: var(--f-mono); font-size: 0.92em; letter-spacing: 0; font-variant-ligatures: none; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+.muted   { color: var(--text-3); }
+.dim     { color: var(--text-2); }
+.strong  { color: var(--text-1); font-weight: var(--w-semi); }
+.accented{ color: var(--accent); }
+.danger-text { color: var(--danger); }
+
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ---- Focus -------------------------------------------------------------- */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+
+::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--text-1); }
+
+/* ---- Scrollbars --------------------------------------------------------- */
+.scroll, .scroll-y, .scroll-x { scrollbar-width: thin; scrollbar-color: var(--surface-4) transparent; }
+.scroll-y { overflow-y: auto; overflow-x: hidden; }
+.scroll-x { overflow-x: auto; overflow-y: hidden; }
+.scroll   { overflow: auto; }
+
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--surface-4);
+  border-radius: var(--r-full);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--surface-5); background-clip: content-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* ---- Layout helpers ----------------------------------------------------- */
+.row  { display: flex; align-items: center; }
+.col  { display: flex; flex-direction: column; }
+.wrap { flex-wrap: wrap; }
+.grow { flex: 1 1 auto; min-width: 0; min-height: 0; }
+.shrink-0 { flex-shrink: 0; }
+.center { display: flex; align-items: center; justify-content: center; }
+.between { justify-content: space-between; }
+.end { justify-content: flex-end; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.items-stretch { align-items: stretch; }
+
+.g-1 { gap: var(--s-1); } .g-2 { gap: var(--s-2); } .g-3 { gap: var(--s-3); }
+.g-4 { gap: var(--s-4); } .g-5 { gap: var(--s-5); } .g-6 { gap: var(--s-6); }
+.g-8 { gap: var(--s-8); } .g-10 { gap: var(--s-10); }
+
+.p-2 { padding: var(--s-2); } .p-3 { padding: var(--s-3); }
+.p-4 { padding: var(--s-4); } .p-5 { padding: var(--s-5); }
+.p-6 { padding: var(--s-6); } .p-8 { padding: var(--s-8); }
+
+.mt-1{margin-top:var(--s-1)}.mt-2{margin-top:var(--s-2)}.mt-3{margin-top:var(--s-3)}
+.mt-4{margin-top:var(--s-4)}.mt-6{margin-top:var(--s-6)}.mt-8{margin-top:var(--s-8)}
+.mb-1{margin-bottom:var(--s-1)}.mb-2{margin-bottom:var(--s-2)}.mb-3{margin-bottom:var(--s-3)}
+.mb-4{margin-bottom:var(--s-4)}.mb-6{margin-bottom:var(--s-6)}
+.ml-auto { margin-left: auto; }
+
+.hidden { display: none !important; }
+.invisible { visibility: hidden; }
+.relative { position: relative; }
+.absolute { position: absolute; }
+.full { width: 100%; }
+.nowrap { white-space: nowrap; }
+.pointer { cursor: pointer; }
+.no-select { -webkit-user-select: none; user-select: none; }
+
+.divider { height: 1px; background: var(--line-soft); border: 0; }
+.divider-v { width: 1px; align-self: stretch; background: var(--line-soft); }
+
+.spacer { flex: 1 1 auto; }
+
+/* ---- Alpha checkerboard ------------------------------------------------- */
+.checker {
+  background-image:
+    linear-gradient(45deg, var(--checker-a) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--checker-a) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--checker-a) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--checker-a) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  background-color: var(--checker-b);
+}
+.checker-sm { background-size: 8px 8px; background-position: 0 0, 0 4px, 4px -4px, -4px 0px; }
+
+/* ---- Motion primitives -------------------------------------------------- */
+@keyframes fg-fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes fg-rise    { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+@keyframes fg-pop     { from { opacity: 0; transform: scale(.94) } to { opacity: 1; transform: none } }
+@keyframes fg-slide-r { from { opacity: 0; transform: translateX(16px) } to { opacity: 1; transform: none } }
+@keyframes fg-spin    { to { transform: rotate(360deg) } }
+@keyframes fg-pulse   { 0%,100% { opacity: 1 } 50% { opacity: .45 } }
+@keyframes fg-shimmer { from { background-position: -180% 0 } to { background-position: 180% 0 } }
+
+.anim-rise { animation: fg-rise var(--d-base) var(--ease-out) both; }
+.anim-pop  { animation: fg-pop  var(--d-fast) var(--ease-spring) both; }
+.anim-fade { animation: fg-fade-in var(--d-base) var(--ease-out) both; }
+
+.stagger > * { animation: fg-rise var(--d-slow) var(--ease-out) both; }
+.stagger > *:nth-child(1){animation-delay:0ms}   .stagger > *:nth-child(2){animation-delay:24ms}
+.stagger > *:nth-child(3){animation-delay:48ms}  .stagger > *:nth-child(4){animation-delay:72ms}
+.stagger > *:nth-child(5){animation-delay:96ms}  .stagger > *:nth-child(6){animation-delay:120ms}
+.stagger > *:nth-child(7){animation-delay:144ms} .stagger > *:nth-child(8){animation-delay:168ms}
+.stagger > *:nth-child(9){animation-delay:192ms} .stagger > *:nth-child(n+10){animation-delay:216ms}
+
+/* ---- Skeletons ---------------------------------------------------------- */
+/* ---- Drag & drop -------------------------------------------------------- */
+body.is-dragging * { cursor: grabbing !important; }
+body.is-resizing * { cursor: col-resize !important; }
+body.is-drawing  { cursor: crosshair; }
