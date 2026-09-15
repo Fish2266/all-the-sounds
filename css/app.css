@@ -560,3 +560,19 @@
   border-top: 1px solid var(--line-hair);
   text-align: center;
 }
+
+/* ---- The way back ----------------------------------------------------------
+   Every one of the three tools carries the same link home to the landing
+   page, in the same place: first thing in the top bar. */
+.home-link {
+  display: inline-flex; align-items: center; gap: 4px; flex: none;
+  height: 26px; padding: 0 9px 0 6px;
+  border-radius: var(--r-full);
+  color: var(--text-3); text-decoration: none; white-space: nowrap;
+  font-size: var(--t-12); font-weight: var(--w-medium);
+  transition: background var(--d-fast) var(--ease-out), color var(--d-fast) var(--ease-out);
+}
+.home-link:hover { background: var(--surface-2); color: var(--text-1); }
+.home-link:active { background: var(--surface-3); }
+.home-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (max-width: 720px) { .home-link { padding: 0 6px; } .home-link span { display: none; } }

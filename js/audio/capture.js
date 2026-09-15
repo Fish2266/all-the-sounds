@@ -17,6 +17,7 @@ import { clamp } from '../core/util.js';
 
 const WORKLET = new URL('./capture-worklet.js', import.meta.url).href;
 const PRE_ROLL = 0.25;
+const CLIP = 0.985;          // a sample this close to full scale counts as clipped
 const loaded = new WeakSet();
 
 export const canCapture = () =>
@@ -78,6 +79,8 @@ export class Capture {
       if (m.pre) this._pre = m.samples.length;
       this._chunks.push(m.samples);
     } else if (m.type === 'done') {
+      // The worklet saw every sample; the meter only saw one frame in sixty.
+      if (m.peak >= CLIP) this.clipped = true;
       const r = this._done; this._done = null; r?.();
     }
   }
@@ -147,7 +150,7 @@ export class Capture {
         const a = Math.abs(v);
         if (a > peak) peak = a;
       }
-      if (this.state === 'recording' && peak >= 0.985) this.clipped = true;
+      if (this.state === 'recording' && peak >= CLIP) this.clipped = true;
       const rms = Math.sqrt(sum / time.length);
       this._peakHold = Math.max(peak, this._peakHold * 0.94);
       this.analyser.getByteFrequencyData(freq);

@@ -27,6 +27,13 @@ const ROUTES = [
   { id: 'export',  label: 'Export', pix: 'export', accent: '#3FD98B', needsProject: true },
 ];
 
+/* The way back to the landing page. The same link, in the same place, in all
+   three tools. */
+export const homeLink = () => h('a.home-link.no-drag', {
+  href: 'https://fish2266.github.io/mctools/',
+  'data-tip': 'All three tools', 'data-tip-pos': 'bottom', 'aria-label': 'Fish’s MC Tools',
+}, raw(icon('chevLeft', 14)), h('span', { text: 'MC Tools' }));
+
 export function buildShell(views) {
   /* ---- Top bar ---- */
   const crumbs = h('.crumbs');
@@ -38,6 +45,8 @@ export function buildShell(views) {
   }, h('span.dot'), h('span', { text: 'Mic live' }));
 
   const topbar = h('.topbar',
+    homeLink(),
+    h('.divider-v', { style: 'height:20px;margin:0 2px 0 4px' }),
     h('.logo.no-drag',
       h('.logo-mark', markCanvas(28)),
       h('.col', h('.logo-word', 'All ', h('em', 'The'), ' Sounds')),

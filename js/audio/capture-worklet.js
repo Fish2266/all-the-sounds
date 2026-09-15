@@ -21,6 +21,10 @@ class AtsCapture extends AudioWorkletProcessor {
     this.recording = false;
     this.buf = new Float32Array(8192);
     this.len = 0;
+    /* The loudest raw sample of the take, on any channel, before the fold to
+       mono can halve it. The meter only looks once a frame and can miss a
+       clip a few samples long; this sees every one. */
+    this.peak = 0;
     this.port.onmessage = e => {
       if (e.data.type === 'start') this.begin();
       else if (e.data.type === 'stop') this.end();
@@ -41,7 +45,16 @@ class AtsCapture extends AudioWorkletProcessor {
       this.port.postMessage({ type: 'chunk', samples: pre, pre: true }, [pre.buffer]);
     }
     this.len = 0;
+    this.peak = this.prePeak();
     this.recording = true;
+  }
+
+  /** The pre-roll ships with the take, so a clip in it counts too. */
+  prePeak() {
+    let p = 0;
+    const n = this.ringFull ? this.ring.length : this.ringPos;
+    for (let i = 0; i < n; i++) { const a = Math.abs(this.ring[i]); if (a > p) p = a; }
+    return p;
   }
 
   end() {
@@ -49,7 +62,7 @@ class AtsCapture extends AudioWorkletProcessor {
     this.recording = false;
     this.ringPos = 0;
     this.ringFull = false;
-    this.port.postMessage({ type: 'done' });
+    this.port.postMessage({ type: 'done', peak: this.peak });
   }
 
   flush() {
@@ -65,7 +78,11 @@ class AtsCapture extends AudioWorkletProcessor {
     const n = chans[0].length, k = chans.length;
     for (let i = 0; i < n; i++) {
       let v = 0;
-      for (let c = 0; c < k; c++) v += chans[c][i];
+      for (let c = 0; c < k; c++) {
+        const s = chans[c][i];
+        v += s;
+        if (this.recording) { const a = s < 0 ? -s : s; if (a > this.peak) this.peak = a; }
+      }
       v /= k;
       if (this.recording) {
         this.buf[this.len++] = v;
