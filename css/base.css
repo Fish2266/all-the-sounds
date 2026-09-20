@@ -7,9 +7,16 @@
 
 html, body, #app { height: 100%; }
 
+/* The page background has to live on the root element, not only on <body>.
+   With viewport-fit=cover, iOS paints the safe-area strip behind the status
+   bar from the ROOT background; body's background propagates to the canvas
+   but not to that strip, so it fell back to the default white. In light mode
+   that is invisible against a near-white page — in dark mode it reads as a
+   white bar across the Dynamic Island. */
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  background: var(--bg-base);
 }
 
 body {

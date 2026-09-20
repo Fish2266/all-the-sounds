@@ -102,7 +102,7 @@ export function setPref(key, value) {
 export function applyPrefs() {
   const root = document.documentElement;
   root.dataset.theme = state.prefs.theme || 'deepslate';
-  syncThemeColor('.topbar', 'allthesounds:theme');   // the iOS status bar follows the top bar
+  syncThemeColor('allthesounds:theme');   // the iOS status bar follows the page background
   document.body.dataset.grain = state.prefs.grain ? 'on' : 'off';
   root.dataset.textures = state.prefs.textures === false ? 'off' : 'on';
   if (state.prefs.reduceMotion) root.style.setProperty('--d-base', '0ms');
