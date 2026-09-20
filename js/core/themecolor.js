@@ -5,11 +5,24 @@
  * leaves a near-black band across the Dynamic Island above a bone-white top
  * bar. Read the colour off the element the bar actually sits against instead,
  * so the two cannot drift apart.
+ *
+ * Two details that matter on iOS:
+ *  - The meta is replaced, not edited. Safari does not reliably repaint the
+ *    bar when an existing meta's `content` changes under it.
+ *  - The chosen theme lives in IndexedDB, which resolves well after the first
+ *    paint, so it is mirrored into localStorage for the inline script in the
+ *    head to read back on the next visit. (Every app here shares one origin,
+ *    hence a per-app key.)
  */
-let metas = null;
 let pending = false;
 
-export function syncThemeColor(selector = '.topbar') {
+export function syncThemeColor(selector = '.topbar', storageKey = null) {
+  const root = document.documentElement;
+
+  if (storageKey && root.dataset.theme) {
+    try { localStorage.setItem(storageKey, root.dataset.theme); } catch { /* private mode */ }
+  }
+
   const source = document.querySelector(selector);
   if (!source) {
     // Prefs are applied before the shell mounts on the first pass. Use the
@@ -17,7 +30,7 @@ export function syncThemeColor(selector = '.topbar') {
     write(getComputedStyle(document.body).backgroundColor);
     if (!pending) {
       pending = true;
-      requestAnimationFrame(() => { pending = false; syncThemeColor(selector); });
+      requestAnimationFrame(() => { pending = false; syncThemeColor(selector, storageKey); });
     }
     return;
   }
@@ -34,12 +47,9 @@ function isOpaque(colour) {
 
 function write(colour) {
   if (!colour) return;
-  if (!metas) metas = [...document.querySelectorAll('meta[name="theme-color"]')];
-  if (!metas.length) {
-    const m = document.createElement('meta');
-    m.name = 'theme-color';
-    document.head.appendChild(m);
-    metas = [m];
-  }
-  for (const m of metas) m.setAttribute('content', colour);
+  for (const stale of document.querySelectorAll('meta[name="theme-color"]')) stale.remove();
+  const meta = document.createElement('meta');
+  meta.name = 'theme-color';
+  meta.content = colour;
+  document.head.appendChild(meta);
 }

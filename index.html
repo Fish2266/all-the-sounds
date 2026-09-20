@@ -6,7 +6,30 @@
   <meta name="color-scheme" content="dark light">
   <title>All The Sounds — record your own Minecraft sounds</title>
   <meta name="description" content="Every sound in Minecraft, listed. Record your own for any of them, trim and retake, and export a resource pack. Runs entirely in your browser.">
-  <meta name="theme-color" content="#12161A">
+  <!-- Owned by the script below, then by themecolor.js. iOS paints the strip
+       around the Dynamic Island with this. -->
+  <meta name="theme-color" content="#151A1E">
+  <!-- Only applies once the page is on the Home Screen, where iOS paints the
+       status bar itself and ignores theme-color; "black-translucent" hands
+       that strip back to the page. -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Runs before the first paint. The chosen theme lives in IndexedDB, which
+       resolves long after that, so store.js mirrors it into localStorage for
+       this to read back — which settles the status bar and the theme itself
+       before anything is drawn instead of flashing the wrong one. All of these
+       apps share one origin, hence the per-app key. -->
+  <script>
+  (function () {
+    var BAR = { deepslate: '#151A1E', bone: '#F5F2EC' };   // --surface-1, the top bar
+    var t = 'deepslate';
+    try { t = localStorage.getItem('allthesounds:theme') || 'deepslate'; } catch (e) {}
+    if (!BAR[t]) t = 'deepslate';
+    document.documentElement.dataset.theme = t;
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', BAR[t]);
+  })();
+  </script>
 
   <!-- Link previews. og:image is left out deliberately, as in Frame & Groove. -->
   <meta property="og:type" content="website">

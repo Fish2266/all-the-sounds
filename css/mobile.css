@@ -99,7 +99,14 @@
   /* Top bar: home link, wordmark, breadcrumb, save state and four tool
      buttons do not fit in 393pt. The palette and the shortcut sheet are both
      keyboard affordances. */
-  .topbar { padding: 0 var(--s-2); gap: var(--s-2); }
+  /* padding-top is 0 in a Safari tab, where Safari owns the status bar. On
+     the Home Screen that strip belongs to the page, so the bar steps under
+     it rather than sliding beneath the clock. */
+  .topbar {
+    padding: env(safe-area-inset-top) var(--s-2) 0;
+    height: auto; min-height: calc(var(--topbar-h) + env(safe-area-inset-top));
+    gap: var(--s-2);
+  }
   .topbar .divider-v { display: none; }
   .topbar [data-tip^="Command palette"] .caption,
   .topbar [data-tip^="Keyboard shortcuts"] { display: none; }
@@ -130,6 +137,11 @@
   .lib-search { width: 100%; }
   .lib-toolbar .select { flex: 1 1 auto; min-width: 0; }
   .lib-toolbar > .spacer { display: none; }
+
+  /* Empty states line their actions up in a nowrap row, so the last one ran
+     off the right edge. */
+  .empty .row { flex-wrap: wrap; justify-content: center; }
+  .empty .row > .btn { flex: 0 1 auto; }
 
   .view-header > .row.wrap { width: 100%; }
   .view-header > .row.wrap > .btn {
