@@ -1,0 +1,212 @@
+/* ============================================================================
+   ALL THE SOUNDS — phone layer (iOS portrait)
+   Loaded last, over tokens / base / components / app / sounds.
+
+   1. Touch          2. Controls        3. Shell → bottom tab bar
+   4. Views          5. Landscape
+   ========================================================================= */
+
+/* ======================= 1. TOUCH ======================================= */
+/* Every hover in the kit latches after a tap on a touch device and stays lit
+   until something else is tapped. */
+@media (hover: none) {
+  .btn:hover { background: var(--surface-3); }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-ghost:hover { background: transparent; color: var(--text-2); }
+  .btn-outline:hover { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+  .btn-danger:hover { background: transparent; color: var(--danger); }
+  .rail-btn:hover { color: var(--text-4); background: transparent; }
+  .rail-btn:hover .rb-icon { opacity: .55; filter: saturate(.35); }
+  .rail-btn[aria-current="true"]:hover { color: var(--text-1); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .rail-btn[aria-current="true"]:hover .rb-icon { opacity: 1; filter: none; }
+  .list-row:hover, .cat-row:hover, .ev-row:hover { background: transparent; }
+  .crumbs .crumb:hover { color: var(--text-3); background: transparent; }
+  .crumbs .crumb.current:hover { color: var(--text-1); }
+  .segmented button:hover { color: var(--text-3); }
+
+  /* The tooltips are pointer affordances; a tap fires them and then leaves
+     the bubble hanging over what was just tapped. */
+  .tipbubble { display: none !important; }
+}
+
+@media (pointer: coarse) {
+  * { -webkit-tap-highlight-color: transparent; }
+  .btn, .rail-btn, .list-row, .cat-row, .ev-row, .segmented button {
+    -webkit-user-select: none; user-select: none;
+  }
+  /* Dragging across a waveform to set the trim should not scroll the page. */
+  .wave, .wave canvas, .tk-wave { touch-action: none; }
+}
+
+/* ======================= 2. CONTROLS ==================================== */
+/* The kit is sized for a mouse: 32px targets and 13px type. 13px also makes
+   iOS zoom the page the moment a field takes focus, and it never zooms back. */
+@media (max-width: 860px) {
+  .input, .select, .textarea { height: 40px; font-size: 16px; }
+  .textarea { height: auto; min-height: 88px; padding-top: 8px; padding-bottom: 8px; }
+  .input-sm, .select-sm { height: 34px; font-size: 16px; }
+
+  .btn { height: 38px; padding: 0 var(--s-4); font-size: var(--t-14); }
+  .btn-sm { height: 32px; padding: 0 var(--s-3); font-size: var(--t-13); }
+  .btn-lg, .btn-xl { height: 46px; }
+  .btn-icon { width: 38px; padding: 0; }
+  .btn-icon.btn-sm { width: 32px; }
+  .btn-icon.btn-lg { width: 46px; }
+
+  /* Checkboxes and radios ship at their 13px default, which is a 13px target. */
+  input[type="checkbox"], input[type="radio"] { width: 18px; height: 18px; }
+  input[type="range"] { height: 28px; }
+}
+
+/* ======================= 3. SHELL ======================================= */
+/* The icon rail costs 68px of a 393pt screen and puts navigation at the far
+   edge from a thumb. Below 720px it becomes a bottom tab bar instead: same
+   buttons, same order, same states — laid on their side. */
+@media (max-width: 720px) {
+  .shell { flex-direction: column; }
+
+  .viewhost { order: 1; flex: 1 1 0; min-height: 0; }
+
+  .rail {
+    order: 2;
+    flex: none;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch;
+    gap: 0;
+    padding: 4px var(--s-1) calc(4px + env(safe-area-inset-bottom));
+    border-right: 0;
+    border-top: 1px solid var(--line-hair);
+    background: var(--surface-1);
+  }
+  .rail > .rail-sep, .rail > .spacer { display: none; }
+  .rail-btn { flex: 1 1 0; width: auto; min-width: 0; height: 50px; gap: 1px; }
+  .rail-btn .rb-icon { width: 26px; height: 26px; }
+  .rail-btn .rb-label { font-size: 9px; }
+
+  /* The current-tab marker is a bar down the left edge of the rail. Turned on
+     its side it reads as a stray line floating above the bar, and a tab bar
+     does not need it — the lit icon, the label and the tinted plate already
+     say which tab you are on. */
+  .rail-btn[aria-current="true"]::before { display: none; }
+  .rail-btn[aria-current="true"] {
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent);
+  }
+  .rail-btn[aria-current="true"] .rb-label { color: var(--accent); }
+
+  /* Top bar: home link, wordmark, breadcrumb, save state and four tool
+     buttons do not fit in 393pt. The palette and the shortcut sheet are both
+     keyboard affordances. */
+  .topbar { padding: 0 var(--s-2); gap: var(--s-2); }
+  .topbar .divider-v { display: none; }
+  .topbar [data-tip^="Command palette"] .caption,
+  .topbar [data-tip^="Keyboard shortcuts"] { display: none; }
+  .logo-word { font-size: var(--t-13); }
+  /* The breadcrumb repeats what the tab bar already says, and at this width it
+     only gets to show two characters of it. */
+  .topbar .crumbs { display: none; }
+
+  /* Safe area at the sides, for landscape and for the rounded corners. */
+  .topbar { padding-left: max(var(--s-2), env(safe-area-inset-left)); padding-right: max(var(--s-2), env(safe-area-inset-right)); }
+  .view-header, .lib-toolbar, .view-body {
+    padding-left: max(var(--s-4), env(safe-area-inset-left));
+    padding-right: max(var(--s-4), env(safe-area-inset-right));
+  }
+}
+
+
+/* ======================= 4. VIEWS ======================================= */
+@media (max-width: 560px) {
+  .view-header { padding-top: var(--s-5); padding-bottom: var(--s-3); }
+  .view-header h1 { font-size: var(--t-21); }
+  .view-body { padding-bottom: var(--s-6); }
+
+  /* The packs toolbar put a 250px search field and a sort select on one line
+     and clipped the select off the right edge. */
+  .lib-toolbar { flex-wrap: wrap; gap: var(--s-2); }
+  .lib-toolbar .input-group { flex: 1 0 100%; }
+  .lib-search { width: 100%; }
+  .lib-toolbar .select { flex: 1 1 auto; min-width: 0; }
+  .lib-toolbar > .spacer { display: none; }
+
+  .view-header > .row.wrap { width: 100%; }
+  .view-header > .row.wrap > .btn {
+    flex: 1 1 150px; min-width: 0;
+    height: auto; min-height: 46px; padding: 8px var(--s-3);
+    white-space: normal; line-height: 1.25; text-align: center;
+  }
+
+  /* Sounds: the two-column fallback keeps a 312px inspector, which on a 393pt
+     screen left the list of 1,991 sounds 13px wide. Stack them instead — the
+     list takes the top of the screen and the inspector the rest, so tapping a
+     sound still updates something you can see without scrolling. */
+  .snd-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .snd-list { height: 44svh; min-height: 200px; }
+  .snd-insp {
+    border-left: 0;
+    border-top: 1px solid var(--line-hair);
+  }
+  /* Search, category and filter each claimed a row of their own — 143px of a
+     375px list. Search keeps its row; the category picker and the filter share
+     the second, and the "1,991 sounds" tally goes, since the category picker
+     already carries the count. */
+  .snd-list-head { padding: var(--s-2) var(--s-3); }
+  .snd-list-head .input-group { flex: 1 0 100%; min-width: 0; }
+  .snd-list-head .snd-cat-select { flex: 1 1 120px; width: auto; min-width: 0; }
+  .snd-list-head > .caption { display: none; }
+  /* The virtual list measures its own rows, so it must keep a real height. */
+  .snd-scroll { min-height: 0; }
+
+  .insp-head { padding: var(--s-4) var(--s-3) var(--s-3); }
+  .insp-title { font-size: var(--t-16); }
+
+  /* Two columns of take controls at 393pt leave each one about 170px. */
+  .tk-controls { grid-template-columns: minmax(0, 1fr); }
+  .tk-controls .span-2 { grid-column: auto; }
+  .cat-table { grid-template-columns: minmax(0, 1fr) auto; }
+
+  /* Keyboard hints for keys a phone does not have. */
+  .kbd-row, .kbd-hint { display: none; }
+
+  /* Modals become sheets. */
+  .overlay { padding: 0; display: flex; align-items: flex-end; justify-content: center; }
+  .modal, .modal-wide, .modal-xwide {
+    width: 100%; max-width: 100%;
+    max-height: 90svh;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+  }
+  .modal-foot { padding-bottom: calc(var(--s-3) + env(safe-area-inset-bottom)); flex-wrap: wrap; }
+  .modal-foot > .btn { flex: 1 1 auto; }
+
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .export-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ======================= 5. LANDSCAPE =================================== */
+/* ~390pt tall: a bottom tab bar plus a stacked list and inspector leaves
+   nothing of either. Put the rail back on its side and the panes back
+   side by side. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .shell { flex-direction: row; }
+  .rail {
+    order: 0; width: 56px; flex-direction: column; justify-content: flex-start;
+    border-top: 0; border-right: 1px solid var(--line-hair);
+    padding: var(--s-2) 0 calc(var(--s-2) + env(safe-area-inset-bottom));
+    padding-left: env(safe-area-inset-left);
+  }
+  .rail > .spacer { display: block; flex: 1; }
+  .rail-btn { flex: none; width: 48px; height: 46px; }
+  .viewhost { order: 1; }
+
+  .snd-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .snd-list { height: auto; min-height: 0; }
+  .snd-insp { border-left: 1px solid var(--line-hair); border-top: 0; }
+}
